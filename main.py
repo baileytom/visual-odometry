@@ -61,7 +61,7 @@ def image_to_np(filename):
     return image
     
 images = [image_to_np(f) for f in image_paths]
-positions = [utils.np_utils.to_categorical(p) for p in positions]
+#positions = [p for p in positions]
 
 lastp = positions[0]
 for p in positions:
@@ -94,7 +94,7 @@ model = tf.keras.models.Sequential([
 ])
 
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+              loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 

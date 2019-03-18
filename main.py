@@ -10,6 +10,7 @@ import bisect
 import imageio
 import numpy as np
 from tensorflow.python.keras import utils
+import cv2
 
 # Preprocessing, the best part of any project
 
@@ -52,8 +53,6 @@ for label in label_data:
     positions.append(closest_position)
 # =======================================
 
-import cv2
-
 ## image processing
 def image_to_np(filename):
     image = cv2.imread(filename)
@@ -61,16 +60,7 @@ def image_to_np(filename):
     return image
     
 images = [image_to_np(f) for f in image_paths]
-#positions = [p for p in positions]
 
-lastp = positions[0]
-for p in positions:
-    print(p)
-
-print(positions[0])
-    
-#print(len(images), len(positions))    
-#scipy.misc.imsave('out.png', images[1])
 
 img_x, img_y = 32, 32
 input_shape = (img_x, img_y, 3)
@@ -90,17 +80,23 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Flatten(
         input_shape=input_shape
     ),
-    tf.keras.layers.Dense(7, activation=tf.nn.softmax)
+    tf.keras.layers.Dense(7)
 ])
 
 model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
+              loss='mean_squared_error',
               metrics=['accuracy'])
 
 
 images = np.array(images)
 positions = np.array(positions)
 
-model.fit(images, positions, epochs=5, steps_per_epoch=500)
+model.fit(images, positions, epochs=100)
+
+img = np.expand_dims(images[0], axis=0)
+
+print(model.predict(img))
+print(positions[0])
+
 
 #loss, acc = model.evaluate(x_test, y_test)

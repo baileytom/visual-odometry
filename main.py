@@ -66,37 +66,37 @@ input_shape = (img_x, img_y, 3)
 
 model = tf.keras.models.Sequential([
     tf.keras.layers.Conv2D(
-        32,
+        img_x,
         (3, 3),
         padding='same',
-        activation='tanh',
+        activation='relu',
         input_shape=(img_x,img_y,3)
     ),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Conv2D(
-        32,
+        img_x,
         (3, 3),
         padding='same',
-        activation='tanh'
+        activation='relu'
     ),
     tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
     tf.keras.layers.Conv2D(
-        64,
+        img_x*2,
         (3, 3),
         padding='same',
-        activation='tanh'
+        activation='relu'
     ),
     tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dropout(0,2),
     tf.keras.layers.Dense(
         512,
-        activation='tanh',
+        activation='relu',
         kernel_constraint=keras.constraints.maxnorm(3)
     ),
     tf.keras.layers.Dense(
         512,
-        activation='tanh',
+        activation='relu',
         kernel_constraint=keras.constraints.maxnorm(3)
     ),
     tf.keras.layers.Dropout(0.2),
@@ -105,7 +105,7 @@ model = tf.keras.models.Sequential([
 
 
 model.compile(optimizer='sgd',
-              loss='mean_absolute_error',
+              loss='mean_squared_error',
               metrics=['accuracy'])
 
 sources =[
@@ -129,8 +129,11 @@ x_train, x_test, y_train, y_test = train_test_split(all_d_images, all_d_position
 x_test, x_valid, y_test, y_valid = train_test_split(x_test, y_test, test_size=0.2)
 
 # Train the model
-model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=100)
+model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=200, batch_size=32)
 
 # Print accuracy on test set
 loss, acc = model.evaluate(x_test, y_test)
+
+model.save_weights("model.h5")
+
 print(loss, acc)

@@ -5,10 +5,12 @@ import pathlib
 import random
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import IPython.display as display
 import collections
 import bisect
 import imageio
+import matplotlib.animation as animation
 import numpy as np
 from tensorflow.python.keras import utils
 from sklearn.model_selection import train_test_split
@@ -21,6 +23,35 @@ def image_to_np(filename):
     image = cv2.imread(filename)
     image = cv2.resize(image, dsize=(img_x, img_y), interpolation=cv2.INTER_CUBIC)
     return image/255
+
+# Plot predicted vs actual absolute positions
+def show_plots(model, dimages, dpositions):
+    dpredictions = model.predict(dimages)
+    dactual = dpositions
+    
+    fig = plt.figure()
+    fig2 = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ex = fig2.add_subplot(111, projection='3d')
+    
+    predictions = []
+    actual = []
+    x,y,z=[],[],[]
+    x2,y2,z2=[],[],[]
+    for dpred, dact in zip(dpredictions, dactual):
+        predictions.append([x,y,z])
+        actual.append([x2,y2,z2])
+        x += [dpred[0]]
+        y += [dpred[1]]
+        z += [dpred[2]]
+        x2 += [dact[0]]
+        y2 += [dact[1]]
+        z2 += [dact[2]]
+    
+    ax.plot(x,y,z,color="red")
+    ex.plot(x2,y2,z2)
+        
+    plt.show()
 
 # Process data from a tgz to d_images & d_positions
 def process_source(root):
@@ -110,7 +141,7 @@ model.compile(optimizer='adam',
 
 sources =[
     'rgbd_dataset_freiburg1_xyz',
-    'rgbd_dataset_freiburg1_rpy'
+    #'rgbd_dataset_freiburg1_rpy'
     ]
 
 all_d_images = []
@@ -127,13 +158,15 @@ x_train, x_test, y_train, y_test = train_test_split(all_d_images, all_d_position
 x_test, x_valid, y_test, y_valid = train_test_split(x_test, y_test, test_size=0.2)
 
 # Train the model
-model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=1000, batch_size=32)
+#model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=1000, batch_size=32)
 
-#model.load_weights("model.h5")
+model.load_weights("model.h5")
+
+show_plots(model, all_d_images, all_d_positions)
 
 # Print accuracy on test set
-loss, acc = model.evaluate(x_test, y_test)
+#loss, acc = model.evaluate(x_test, y_test)
 
 #model.save_weights("model.h5")
 
-print(loss, acc)
+#print(loss, acc)

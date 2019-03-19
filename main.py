@@ -129,9 +129,11 @@ x_test, x_valid, y_test, y_valid = train_test_split(x_test, y_test, test_size=0.
 # Train the model
 model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=1000, batch_size=32)
 
+#model.load_weights("model.h5")
+
 # Print accuracy on test set
 loss, acc = model.evaluate(x_test, y_test)
 
-model.save_weights("model.h5")
+#model.save_weights("model.h5")
 
 print(loss, acc)

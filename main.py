@@ -38,16 +38,16 @@ def process_source(root):
 
     pat = collections.OrderedDict()
     for datum in motion_data:
-        pat[float(datum.split()[0])] = np.array([float(n) for n in datum.split()[1:]])
+        pat[float(datum.split()[0])] = np.array([float(n) for n in datum.split()[1:4]])
         
     def position_at_time(timestamp):
         ind = bisect.bisect_left(list(pat.keys()), timestamp)
-        return list(pat.items())[ind][1]
+        return list(pat.items())[ind]
 
     positions = []
     for label in label_data:
         timestamp = float(label.split()[0])
-        closest_position = position_at_time(timestamp)
+        real_time, closest_position = position_at_time(timestamp)        
         positions.append(closest_position)
 
     # Convert images & positions to their delta values (differences between adjacent frames & positions)
@@ -100,17 +100,17 @@ model = tf.keras.models.Sequential([
         kernel_constraint=keras.constraints.maxnorm(3)
     ),
     tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(7)
+    tf.keras.layers.Dense(3)
 ])
 
 
-model.compile(optimizer='sgd',
+model.compile(optimizer='adam',
               loss='mean_squared_error',
               metrics=['accuracy'])
 
 sources =[
     'rgbd_dataset_freiburg1_xyz',
-    'rgbd_dataset_freiburg2_desk_with_person'
+    'rgbd_dataset_freiburg1_rpy'
     ]
 
 all_d_images = []
@@ -121,15 +121,13 @@ for source in sources:
     all_d_positions += d_p
 all_d_images = np.array(all_d_images)
 all_d_positions = np.array(all_d_positions)
-
-print(all_d_images[0])
                     
 # Split into training, testing, & validation sets
 x_train, x_test, y_train, y_test = train_test_split(all_d_images, all_d_positions, test_size=0.3)
 x_test, x_valid, y_test, y_valid = train_test_split(x_test, y_test, test_size=0.2)
 
 # Train the model
-model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=200, batch_size=32)
+model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=1000, batch_size=32)
 
 # Print accuracy on test set
 loss, acc = model.evaluate(x_test, y_test)
